@@ -17,6 +17,7 @@ import com.bignerdranch.android.multiselector.ModalMultiSelectorCallback;
 import com.bignerdranch.android.multiselector.MultiSelector;
 import com.bignerdranch.android.multiselector.SwappingHolder;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import me.zhukov.remindme.R;
@@ -56,7 +57,8 @@ public class ReminderListAdapter extends RecyclerView.Adapter<ReminderListAdapte
         return mReminders.size();
     }
 
-    public void delete(int position) {
+    public void delete(Reminder reminder) {
+        int position = mReminders.indexOf(reminder);
         mReminders.remove(position);
         notifyItemRemoved(position);
     }
@@ -87,8 +89,12 @@ public class ReminderListAdapter extends RecyclerView.Adapter<ReminderListAdapte
                 switch (item.getItemId()) {
                     case R.id.action_delete_reminder:
                         mode.finish();
+                        List<Reminder> deletedReminders = new ArrayList<>(getItemCount());
                         for (int position : mMultiSelector.getSelectedPositions()) {
-                            delete(position);
+                            deletedReminders.add(mReminders.get(position));
+                        }
+                        for (Reminder reminder : deletedReminders) {
+                            delete(reminder);
                         }
                         mMultiSelector.clearSelections();
                         return true;
@@ -153,9 +159,9 @@ public class ReminderListAdapter extends RecyclerView.Adapter<ReminderListAdapte
 
         public void setSilent(boolean silent) {
             if (silent) {
-                mIvSilent.setImageResource(R.mipmap.ic_bell_ring_grey);
+                mIvSilent.setImageResource(R.drawable.ic_bell_ring_grey);
             } else {
-                mIvSilent.setImageResource(R.mipmap.ic_bell_off_grey);
+                mIvSilent.setImageResource(R.drawable.ic_bell_off_grey);
             }
         }
     }
