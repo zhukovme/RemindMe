@@ -2,4 +2,7 @@
     <string name="app_name">RemindMe</string>
 
     <string name="action_settings">Settings</string>
+    <string name="no_reminder_text">Nothing here!</string>
+    <string name="action_delete_reminder">Delete Reminder</string>
+    <string name="ok">Ok</string>
 </resources>
