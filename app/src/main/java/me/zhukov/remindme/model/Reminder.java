@@ -1,5 +1,7 @@
 package me.zhukov.remindme.model;
 
+import me.zhukov.remindme.DateAndTimeManager;
+
 public class Reminder {
 
     private int mId;
@@ -24,16 +26,16 @@ public class Reminder {
         mSilent = silent;
     }
 
-    public Reminder(int id, String title, String date, String time, boolean repeat, String repeatNumber,
-                    String repeatType, boolean silent) {
-        this.mId = id;
-        this.mTitle = title;
-        this.mDate = date;
-        this.mTime = time;
-        this.mRepeat = repeat;
-        this.mRepeatNumber = repeatNumber;
-        this.mRepeatType = repeatType;
-        this.mSilent = silent;
+    public static Reminder getDefaultReminder() {
+        Reminder reminder = new Reminder();
+        DateAndTimeManager dtConverter = new DateAndTimeManager();
+        reminder.setDate(dtConverter.getCurrentDate());
+        reminder.setTime(dtConverter.getCurrentTime());
+        reminder.setRepeat(true);
+        reminder.setRepeatNumber("5");
+        reminder.setRepeatType("Minute");
+        reminder.setSilent(false);
+        return reminder;
     }
 
     public int getId() {
@@ -100,4 +102,11 @@ public class Reminder {
         this.mSilent = silent;
     }
 
+    public String repeatToString() {
+        if (getRepeat()) {
+            return "Every " + getRepeatNumber() + " " + getRepeatType() + "(s)";
+        } else {
+            return "Repeat off";
+        }
+    }
 }

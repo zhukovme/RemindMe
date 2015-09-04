@@ -1,5 +1,6 @@
 package me.zhukov.remindme.activity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -52,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
         fabAddReminder.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                startActivity(new Intent(v.getContext(), AddOrEditReminderActivity.class));
             }
         });
     }

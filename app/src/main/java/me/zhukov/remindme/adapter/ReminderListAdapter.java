@@ -116,7 +116,7 @@ public class ReminderListAdapter extends RecyclerView.Adapter<ReminderListAdapte
             mIvThumbnail = (ImageView) itemView.findViewById(R.id.iv_thumbnail);
             mIvSilent = (ImageView) itemView.findViewById(R.id.iv_silent);
             mTvTitle = (TextView) itemView.findViewById(R.id.tv_title);
-            mTvDataTime = (TextView) itemView.findViewById(R.id.tv_data_time);
+            mTvDataTime = (TextView) itemView.findViewById(R.id.tv_date_time);
             mTvRepeatInfo = (TextView) itemView.findViewById(R.id.tv_repeat_info);
             mColorGenerator = ColorGenerator.DEFAULT;
         }
