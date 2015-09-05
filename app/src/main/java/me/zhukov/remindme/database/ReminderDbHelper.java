@@ -24,7 +24,7 @@ public class ReminderDbHelper extends SQLiteOpenHelper {
     private static final String COMMA_SEP = ", ";
     private static final String SQL_CREATE_ENTRIES =
             "CREATE TABLE " + TABLE_NAME + " (" +
-                    COLUMN_ID + " INTEGER PRIMARY KEY, " +
+                    COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     COLUMN_TITLE + TEXT_TYPE + COMMA_SEP +
                     COLUMN_DATE + TEXT_TYPE + COMMA_SEP +
                     COLUMN_TIME + TEXT_TYPE + COMMA_SEP +

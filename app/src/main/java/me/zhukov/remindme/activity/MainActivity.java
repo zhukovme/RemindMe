@@ -7,13 +7,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import me.zhukov.remindme.R;
@@ -41,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         FloatingActionButton fabAddReminder = (FloatingActionButton) findViewById(R.id.fab_add_reminder);
-        RecyclerView mRvReminderList = (RecyclerView) findViewById(R.id.rv_reminder_list);
+        RecyclerView rvReminderList = (RecyclerView) findViewById(R.id.rv_reminder_list);
         mTvNoReminder = (TextView) findViewById(R.id.tv_no_reminder);
 
         toolbar.setTitle(R.string.app_name);
@@ -51,8 +49,8 @@ public class MainActivity extends AppCompatActivity {
         mReminders = mReminderMapper.getAllReminders();
 
         mAdapter = new ReminderListAdapter(MainActivity.this, mReminders, mTvNoReminder);
-        mRvReminderList.setAdapter(mAdapter);
-        mRvReminderList.setLayoutManager(getLayoutManager());
+        rvReminderList.setAdapter(mAdapter);
+        rvReminderList.setLayoutManager(getLayoutManager());
 
         fabAddReminder.setOnClickListener(new View.OnClickListener() {
             @Override

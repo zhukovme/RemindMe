@@ -30,7 +30,6 @@ public class ReminderMapper {
     }
 
     public long insertReminder(Reminder reminder) {
-
         mDatabase = mDbHelper.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
         contentValues.put(COLUMN_TITLE, reminder.getTitle());
@@ -42,6 +41,7 @@ public class ReminderMapper {
         contentValues.put(COLUMN_SILENT, reminder.getSilent() ? 1 : 0);
 
         long rowId = mDatabase.insert(TABLE_NAME, null, contentValues);
+        reminder.setId(rowId);
         mDatabase.close();
         mDbHelper.close();
         return rowId;

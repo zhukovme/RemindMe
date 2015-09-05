@@ -6,7 +6,7 @@ import me.zhukov.remindme.util.DateAndTimeManager;
 
 public class Reminder implements Serializable {
 
-    private int mId;
+    private long mId;
     private String mTitle;
     private String mDate;
     private String mTime;
@@ -40,11 +40,11 @@ public class Reminder implements Serializable {
         return reminder;
     }
 
-    public int getId() {
+    public long getId() {
         return mId;
     }
 
-    public void setId(int id) {
+    public void setId(long id) {
         mId = id;
     }
 

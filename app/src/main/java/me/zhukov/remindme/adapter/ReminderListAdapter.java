@@ -74,6 +74,10 @@ public class ReminderListAdapter extends RecyclerView.Adapter<ReminderListAdapte
         notifyDataSetChanged();
     }
 
+    public void updateItem(Reminder prev, Reminder upd) {
+
+    }
+
     public void deleteItem(Reminder reminder) {
         mReminderMapper.deleteReminder(reminder);
         int position = mReminders.indexOf(reminder);
