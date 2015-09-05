@@ -1,4 +1,4 @@
-package me.zhukov.remindme;
+package me.zhukov.remindme.util;
 
 import java.util.Calendar;
 

@@ -1,8 +1,10 @@
 package me.zhukov.remindme.model;
 
-import me.zhukov.remindme.DateAndTimeManager;
+import java.io.Serializable;
 
-public class Reminder {
+import me.zhukov.remindme.util.DateAndTimeManager;
+
+public class Reminder implements Serializable {
 
     private int mId;
     private String mTitle;

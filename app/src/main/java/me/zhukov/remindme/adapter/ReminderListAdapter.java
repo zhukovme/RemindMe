@@ -1,5 +1,6 @@
 package me.zhukov.remindme.adapter;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ActionMode;
 import android.support.v7.widget.RecyclerView;
@@ -21,18 +22,26 @@ import java.util.ArrayList;
 import java.util.List;
 
 import me.zhukov.remindme.R;
+import me.zhukov.remindme.activity.AddOrEditReminderActivity;
+import me.zhukov.remindme.activity.MainActivity;
+import me.zhukov.remindme.database.ReminderMapper;
 import me.zhukov.remindme.model.Reminder;
 
 public class ReminderListAdapter extends RecyclerView.Adapter<ReminderListAdapter.VerticalItemHolder> {
 
-    private AppCompatActivity mActivity;
+    private MainActivity mMainActivity;
     private List<Reminder> mReminders;
+    private ReminderMapper mReminderMapper;
     private MultiSelector mMultiSelector;
+    private TextView mTvNoReminder;
 
-    public ReminderListAdapter(AppCompatActivity activity, List<Reminder> reminders) {
-        this.mActivity = activity;
+    public ReminderListAdapter(AppCompatActivity activity, List<Reminder> reminders,
+                               TextView tvNoReminder) {
+        this.mMainActivity = (MainActivity) activity;
         this.mReminders = reminders;
+        this.mReminderMapper = new ReminderMapper(activity.getBaseContext());
         this.mMultiSelector = new MultiSelector();
+        this.mTvNoReminder = tvNoReminder;
     }
 
     @Override
@@ -48,7 +57,7 @@ public class ReminderListAdapter extends RecyclerView.Adapter<ReminderListAdapte
         Reminder reminder = mReminders.get(position);
         holder.setTitleAndThumbnail(reminder.getTitle());
         holder.setDateAndTime(reminder.getDate(), reminder.getTime());
-        holder.setRepeatInfo(reminder.getRepeat(), reminder.getRepeatNumber(), reminder.getRepeatType());
+        holder.setRepeatInfo(reminder.repeatToString());
         holder.setSilent(reminder.getSilent());
     }
 
@@ -57,10 +66,20 @@ public class ReminderListAdapter extends RecyclerView.Adapter<ReminderListAdapte
         return mReminders.size();
     }
 
-    public void delete(Reminder reminder) {
+    public void addItem(Reminder reminder) {
+        mReminderMapper.insertReminder(reminder);
+        mReminders.add(reminder);
+        int position = mReminders.indexOf(reminder);
+        notifyItemInserted(position);
+        notifyDataSetChanged();
+    }
+
+    public void deleteItem(Reminder reminder) {
+        mReminderMapper.deleteReminder(reminder);
         int position = mReminders.indexOf(reminder);
         mReminders.remove(position);
         notifyItemRemoved(position);
+        notifyItemRangeChanged(position, getItemCount());
     }
 
     class VerticalItemHolder extends SwappingHolder
@@ -80,7 +99,7 @@ public class ReminderListAdapter extends RecyclerView.Adapter<ReminderListAdapte
             @Override
             public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
                 super.onCreateActionMode(actionMode, menu);
-                mActivity.getMenuInflater().inflate(R.menu.menu_context_main, menu);
+                mMainActivity.getMenuInflater().inflate(R.menu.menu_context_main, menu);
                 return true;
             }
 
@@ -94,7 +113,10 @@ public class ReminderListAdapter extends RecyclerView.Adapter<ReminderListAdapte
                             deletedReminders.add(mReminders.get(position));
                         }
                         for (Reminder reminder : deletedReminders) {
-                            delete(reminder);
+                            deleteItem(reminder);
+                        }
+                        if (mReminders.isEmpty()) {
+                            mTvNoReminder.setVisibility(View.VISIBLE);
                         }
                         mMultiSelector.clearSelections();
                         return true;
@@ -123,16 +145,20 @@ public class ReminderListAdapter extends RecyclerView.Adapter<ReminderListAdapte
 
         @Override
         public void onClick(View v) {
-            if (mMultiSelector.tapSelection(this)) {
-
-            } else {
-
+            if (!mMultiSelector.tapSelection(this)) {
+                Reminder reminder = mReminders.get(getAdapterPosition());
+                Intent intent = new Intent(
+                        mMainActivity.getBaseContext(),
+                        AddOrEditReminderActivity.class
+                );
+                intent.putExtra(MainActivity.UPDATE_REMINDER_INTENT, reminder);
+                mMainActivity.startActivityForResult(intent, MainActivity.UPDATE_REMINDER_REQUEST);
             }
         }
 
         @Override
         public boolean onLongClick(View v) {
-            mActivity.startSupportActionMode(mDeleteMode);
+            mMainActivity.startSupportActionMode(mDeleteMode);
             mMultiSelector.setSelected(this, true);
             return true;
         }
@@ -149,16 +175,12 @@ public class ReminderListAdapter extends RecyclerView.Adapter<ReminderListAdapte
             mTvDataTime.setText(date + " " + time);
         }
 
-        public void setRepeatInfo(boolean repeat, String repeatNumber, String repeatType) {
-            if (repeat) {
-                mTvRepeatInfo.setText("Every " + repeatNumber + " " + repeatType + "(s)");
-            } else {
-                mTvRepeatInfo.setText("Repeat off");
-            }
+        public void setRepeatInfo(String repeatInfo) {
+            mTvRepeatInfo.setText(repeatInfo);
         }
 
         public void setSilent(boolean silent) {
-            if (silent) {
+            if (!silent) {
                 mIvSilent.setImageResource(R.drawable.ic_bell_ring_grey);
             } else {
                 mIvSilent.setImageResource(R.drawable.ic_bell_off_grey);

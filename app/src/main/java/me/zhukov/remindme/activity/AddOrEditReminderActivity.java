@@ -1,6 +1,7 @@
 package me.zhukov.remindme.activity;
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
@@ -21,7 +22,7 @@ import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
 import com.wdullaer.materialdatetimepicker.time.RadialPickerLayout;
 import com.wdullaer.materialdatetimepicker.time.TimePickerDialog;
 
-import me.zhukov.remindme.DateAndTimeManager;
+import me.zhukov.remindme.util.DateAndTimeManager;
 import me.zhukov.remindme.R;
 import me.zhukov.remindme.model.Reminder;
 
@@ -41,17 +42,12 @@ public class AddOrEditReminderActivity extends AppCompatActivity
     private TextView mTvReminderRepeatType;
 
     private DateAndTimeManager mDtManager;
+    private boolean reminderForInsert;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_or_edit_reminder);
-
-        //test
-        mReminder = Reminder.getDefaultReminder();
-        //test
-
-        mDtManager = new DateAndTimeManager();
 
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
         mEtReminderTitle = (EditText) findViewById(R.id.et_reminder_title);
@@ -64,6 +60,14 @@ public class AddOrEditReminderActivity extends AppCompatActivity
         mTvReminderRepeatType = (TextView) findViewById(R.id.tv_reminder_repeat_type);
 
         setupToolbar();
+
+        mReminder = (Reminder) getIntent().getSerializableExtra(MainActivity.UPDATE_REMINDER_INTENT);
+        if (mReminder == null) {
+            mReminder = Reminder.getDefaultReminder();
+            reminderForInsert = true;
+        }
+
+        mDtManager = new DateAndTimeManager();
 
         setViewValues();
 
@@ -106,6 +110,7 @@ public class AddOrEditReminderActivity extends AppCompatActivity
     }
 
     private void setViewValues() {
+        mEtReminderTitle.setText(mReminder.getTitle());
         mTvReminderDate.setText(mReminder.getDate());
         mTvReminderTime.setText(mReminder.getTime());
         mTvReminderRepeat.setText(mReminder.repeatToString());
@@ -123,8 +128,16 @@ public class AddOrEditReminderActivity extends AppCompatActivity
         }
     }
 
-    private void saveReminder() {
+    private void insertReminder() {
+        Intent intent = new Intent();
+        intent.putExtra(MainActivity.INSERT_REMINDER_INTENT, mReminder);
+        setResult(RESULT_OK, intent);
+    }
 
+    private void updateReminder() {
+        Intent intent = new Intent();
+        intent.putExtra(MainActivity.UPDATE_REMINDER_INTENT, mReminder);
+        setResult(RESULT_OK, intent);
     }
 
     public void onClickSetDate(View view) {
@@ -180,7 +193,7 @@ public class AddOrEditReminderActivity extends AppCompatActivity
                     }
                 }
         );
-        alert.setNegativeButton("Cancel", null);
+        alert.setNegativeButton(getResources().getString(R.string.cancel), null);
         alert.show();
     }
 
@@ -221,12 +234,12 @@ public class AddOrEditReminderActivity extends AppCompatActivity
                 if (mEtReminderTitle.getText().toString().isEmpty()) {
                     mEtReminderTitle.setError(getResources().getString(R.string.blank_title_error));
                 } else {
-                    Toast.makeText(
-                            this,
-                            getResources().getString(R.string.saved),
-                            Toast.LENGTH_SHORT
-                    ).show();
-                    saveReminder();
+                    Toast.makeText(this, getResources().getString(R.string.saved), Toast.LENGTH_SHORT).show();
+                    if (reminderForInsert) {
+                        insertReminder();
+                    } else {
+                        updateReminder();
+                    }
                     onBackPressed();
                 }
                 return true;

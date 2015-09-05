@@ -11,16 +11,26 @@ import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import me.zhukov.remindme.R;
 import me.zhukov.remindme.adapter.ReminderListAdapter;
+import me.zhukov.remindme.database.ReminderMapper;
 import me.zhukov.remindme.model.Reminder;
 
 public class MainActivity extends AppCompatActivity {
 
+    public static final int INSERT_REMINDER_REQUEST = 1;
+    public static final int UPDATE_REMINDER_REQUEST = 2;
+    public static final String UPDATE_REMINDER_INTENT = "updateReminder";
+    public static final String INSERT_REMINDER_INTENT = "insertReminder";
+
+    private TextView mTvNoReminder;
+
+    private ReminderMapper mReminderMapper;
     private ReminderListAdapter mAdapter;
     private List<Reminder> mReminders;
 
@@ -32,39 +42,58 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         FloatingActionButton fabAddReminder = (FloatingActionButton) findViewById(R.id.fab_add_reminder);
         RecyclerView mRvReminderList = (RecyclerView) findViewById(R.id.rv_reminder_list);
+        mTvNoReminder = (TextView) findViewById(R.id.tv_no_reminder);
 
         toolbar.setTitle(R.string.app_name);
         setSupportActionBar(toolbar);
 
-        mReminders = new ArrayList<>();
+        mReminderMapper = new ReminderMapper(this);
+        mReminders = mReminderMapper.getAllReminders();
 
-        //test
-        Reminder reminder = new Reminder("First", "3/9/2015", "20:22", true, "5", "Minute", true);
-        Reminder reminder2 = new Reminder("Second", "3/9/2015", "20:22", false, "5", "Minute", false);
-        mReminders.add(reminder);
-        mReminders.add(reminder2);
-        //test
-
-        mAdapter = new ReminderListAdapter(MainActivity.this, mReminders);
+        mAdapter = new ReminderListAdapter(MainActivity.this, mReminders, mTvNoReminder);
         mRvReminderList.setAdapter(mAdapter);
         mRvReminderList.setLayoutManager(getLayoutManager());
-        registerForContextMenu(mRvReminderList);
 
         fabAddReminder.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(v.getContext(), AddOrEditReminderActivity.class));
+                Intent intent = new Intent(v.getContext(), AddOrEditReminderActivity.class);
+                startActivityForResult(intent, INSERT_REMINDER_REQUEST);
             }
         });
     }
 
-    protected RecyclerView.LayoutManager getLayoutManager() {
-        return new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mReminders = mReminderMapper.getAllReminders();
+        if (mReminders.isEmpty()) {
+            mTvNoReminder.setVisibility(View.VISIBLE);
+        } else {
+            mTvNoReminder.setVisibility(View.GONE);
+        }
     }
 
     @Override
-    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
-        getMenuInflater().inflate(R.menu.menu_context_main, menu);
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            case INSERT_REMINDER_REQUEST:
+                if (resultCode == RESULT_OK) {
+                    Reminder reminder = (Reminder) data.getSerializableExtra(INSERT_REMINDER_INTENT);
+                    mAdapter.addItem(reminder);
+                }
+                break;
+            case UPDATE_REMINDER_REQUEST:
+                if (resultCode == RESULT_OK) {
+                    Reminder reminder = (Reminder) data.getSerializableExtra(UPDATE_REMINDER_INTENT);
+
+                }
+                break;
+        }
+    }
+
+    protected RecyclerView.LayoutManager getLayoutManager() {
+        return new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
     }
 
     @Override
