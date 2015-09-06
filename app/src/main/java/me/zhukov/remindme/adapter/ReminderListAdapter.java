@@ -24,14 +24,12 @@ import java.util.List;
 import me.zhukov.remindme.R;
 import me.zhukov.remindme.activity.AddOrEditReminderActivity;
 import me.zhukov.remindme.activity.MainActivity;
-import me.zhukov.remindme.database.ReminderMapper;
 import me.zhukov.remindme.model.Reminder;
 
 public class ReminderListAdapter extends RecyclerView.Adapter<ReminderListAdapter.VerticalItemHolder> {
 
     private MainActivity mMainActivity;
     private List<Reminder> mReminders;
-    private ReminderMapper mReminderMapper;
     private MultiSelector mMultiSelector;
     private TextView mTvNoReminder;
 
@@ -39,7 +37,6 @@ public class ReminderListAdapter extends RecyclerView.Adapter<ReminderListAdapte
                                TextView tvNoReminder) {
         this.mMainActivity = (MainActivity) activity;
         this.mReminders = reminders;
-        this.mReminderMapper = new ReminderMapper(activity.getBaseContext());
         this.mMultiSelector = new MultiSelector();
         this.mTvNoReminder = tvNoReminder;
     }
@@ -64,26 +61,6 @@ public class ReminderListAdapter extends RecyclerView.Adapter<ReminderListAdapte
     @Override
     public int getItemCount() {
         return mReminders.size();
-    }
-
-    public void addItem(Reminder reminder) {
-        mReminderMapper.insertReminder(reminder);
-        mReminders.add(reminder);
-        int position = mReminders.indexOf(reminder);
-        notifyItemInserted(position);
-        notifyDataSetChanged();
-    }
-
-    public void updateItem(Reminder prev, Reminder upd) {
-
-    }
-
-    public void deleteItem(Reminder reminder) {
-        mReminderMapper.deleteReminder(reminder);
-        int position = mReminders.indexOf(reminder);
-        mReminders.remove(position);
-        notifyItemRemoved(position);
-        notifyItemRangeChanged(position, getItemCount());
     }
 
     class VerticalItemHolder extends SwappingHolder
@@ -117,7 +94,7 @@ public class ReminderListAdapter extends RecyclerView.Adapter<ReminderListAdapte
                             deletedReminders.add(mReminders.get(position));
                         }
                         for (Reminder reminder : deletedReminders) {
-                            deleteItem(reminder);
+                            mMainActivity.deleteItem(reminder);
                         }
                         if (mReminders.isEmpty()) {
                             mTvNoReminder.setVisibility(View.VISIBLE);
@@ -156,6 +133,10 @@ public class ReminderListAdapter extends RecyclerView.Adapter<ReminderListAdapte
                         AddOrEditReminderActivity.class
                 );
                 intent.putExtra(MainActivity.UPDATE_REMINDER_INTENT, reminder);
+                mMainActivity.setIntent(new Intent().putExtra(
+                        MainActivity.UPDATE_REMINDER_ID_INTENT,
+                        getAdapterPosition())
+                );
                 mMainActivity.startActivityForResult(intent, MainActivity.UPDATE_REMINDER_REQUEST);
             }
         }

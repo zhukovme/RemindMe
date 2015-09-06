@@ -17,17 +17,6 @@ public class Reminder implements Serializable {
 
     public Reminder() {}
 
-    public Reminder(String title, String date, String time, boolean repeat, String repeatNumber,
-                    String repeatType, boolean silent) {
-        mTitle = title;
-        mDate = date;
-        mTime = time;
-        mRepeat = repeat;
-        mRepeatNumber = repeatNumber;
-        mRepeatType = repeatType;
-        mSilent = silent;
-    }
-
     public static Reminder getDefaultReminder() {
         Reminder reminder = new Reminder();
         DateAndTimeManager dtConverter = new DateAndTimeManager();

@@ -10,7 +10,8 @@
         <activity
             android:name=".activity.MainActivity"
             android:label="@string/app_name"
-            android:theme="@style/Theme.Default">
+            android:theme="@style/Theme.Default"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -20,7 +21,8 @@
         <activity
             android:name=".activity.AddOrEditReminderActivity"
             android:label="@string/app_name"
-            android:theme="@style/Theme.Default"/>
+            android:theme="@style/Theme.Default"
+            android:screenOrientation="portrait"/>
     </application>
 
 </manifest>

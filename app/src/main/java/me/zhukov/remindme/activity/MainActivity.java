@@ -24,6 +24,7 @@ public class MainActivity extends AppCompatActivity {
     public static final int INSERT_REMINDER_REQUEST = 1;
     public static final int UPDATE_REMINDER_REQUEST = 2;
     public static final String UPDATE_REMINDER_INTENT = "updateReminder";
+    public static final String UPDATE_REMINDER_ID_INTENT = "updateReminderId";
     public static final String INSERT_REMINDER_INTENT = "insertReminder";
 
     private TextView mTvNoReminder;
@@ -64,7 +65,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        mReminders = mReminderMapper.getAllReminders();
         if (mReminders.isEmpty()) {
             mTvNoReminder.setVisibility(View.VISIBLE);
         } else {
@@ -78,13 +78,13 @@ public class MainActivity extends AppCompatActivity {
             case INSERT_REMINDER_REQUEST:
                 if (resultCode == RESULT_OK) {
                     Reminder reminder = (Reminder) data.getSerializableExtra(INSERT_REMINDER_INTENT);
-                    mAdapter.addItem(reminder);
+                    addItem(reminder);
                 }
                 break;
             case UPDATE_REMINDER_REQUEST:
                 if (resultCode == RESULT_OK) {
                     Reminder reminder = (Reminder) data.getSerializableExtra(UPDATE_REMINDER_INTENT);
-
+                    updateItem(reminder);
                 }
                 break;
         }
@@ -92,6 +92,30 @@ public class MainActivity extends AppCompatActivity {
 
     protected RecyclerView.LayoutManager getLayoutManager() {
         return new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
+    }
+
+    public void addItem(Reminder reminder) {
+        mReminderMapper.insertReminder(reminder);
+        mReminders.add(reminder);
+        int position = mReminders.indexOf(reminder);
+        mAdapter.notifyItemRemoved(position);
+        mAdapter.notifyItemRangeChanged(position, mAdapter.getItemCount());
+    }
+
+    public void updateItem(Reminder reminder) {
+        mReminderMapper.updateReminder(reminder);
+        int position = getIntent().getIntExtra(UPDATE_REMINDER_ID_INTENT, -1);
+        mReminders.set(position, reminder);
+        mAdapter.notifyItemChanged(position);
+        mAdapter.notifyDataSetChanged();
+    }
+
+    public void deleteItem(Reminder reminder) {
+        mReminderMapper.deleteReminder(reminder);
+        int position = mReminders.indexOf(reminder);
+        mReminders.remove(position);
+        mAdapter.notifyItemInserted(position);
+        mAdapter.notifyDataSetChanged();
     }
 
     @Override
