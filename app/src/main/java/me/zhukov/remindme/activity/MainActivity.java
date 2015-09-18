@@ -18,20 +18,24 @@ import me.zhukov.remindme.R;
 import me.zhukov.remindme.adapter.ReminderListAdapter;
 import me.zhukov.remindme.database.ReminderMapper;
 import me.zhukov.remindme.model.Reminder;
+import me.zhukov.remindme.receiver.AlarmReceiver;
 
 public class MainActivity extends AppCompatActivity {
 
-    public static final int INSERT_REMINDER_REQUEST = 1;
+    public static final int ADD_REMINDER_REQUEST = 1;
     public static final int UPDATE_REMINDER_REQUEST = 2;
     public static final String UPDATE_REMINDER_INTENT = "updateReminder";
     public static final String UPDATE_REMINDER_ID_INTENT = "updateReminderId";
-    public static final String INSERT_REMINDER_INTENT = "insertReminder";
+    public static final String ADD_REMINDER_INTENT = "addReminder";
 
     private TextView mTvNoReminder;
+    private FloatingActionButton mFabAddReminder;
+    private RecyclerView mRvReminderList;
 
     private ReminderMapper mReminderMapper;
     private ReminderListAdapter mAdapter;
     private List<Reminder> mReminders;
+    private AlarmReceiver mAlarmReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,25 +43,26 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        FloatingActionButton fabAddReminder = (FloatingActionButton) findViewById(R.id.fab_add_reminder);
-        RecyclerView rvReminderList = (RecyclerView) findViewById(R.id.rv_reminder_list);
+        mFabAddReminder = (FloatingActionButton) findViewById(R.id.fab_add_reminder);
+        mRvReminderList = (RecyclerView) findViewById(R.id.rv_reminder_list);
         mTvNoReminder = (TextView) findViewById(R.id.tv_no_reminder);
 
         toolbar.setTitle(R.string.app_name);
         setSupportActionBar(toolbar);
 
+        mAlarmReceiver = new AlarmReceiver();
         mReminderMapper = new ReminderMapper(this);
         mReminders = mReminderMapper.getAllReminders();
 
         mAdapter = new ReminderListAdapter(MainActivity.this, mReminders, mTvNoReminder);
-        rvReminderList.setAdapter(mAdapter);
-        rvReminderList.setLayoutManager(getLayoutManager());
+        mRvReminderList.setAdapter(mAdapter);
+        mRvReminderList.setLayoutManager(getLayoutManager());
 
-        fabAddReminder.setOnClickListener(new View.OnClickListener() {
+        mFabAddReminder.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(v.getContext(), AddOrEditReminderActivity.class);
-                startActivityForResult(intent, INSERT_REMINDER_REQUEST);
+                Intent intent = new Intent(v.getContext(), ReminderActivity.class);
+                startActivityForResult(intent, ADD_REMINDER_REQUEST);
             }
         });
     }
@@ -75,16 +80,16 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
-            case INSERT_REMINDER_REQUEST:
+            case ADD_REMINDER_REQUEST:
                 if (resultCode == RESULT_OK) {
-                    Reminder reminder = (Reminder) data.getSerializableExtra(INSERT_REMINDER_INTENT);
-                    addItem(reminder);
+                    Reminder reminder = (Reminder) data.getSerializableExtra(ADD_REMINDER_INTENT);
+                    addReminder(reminder);
                 }
                 break;
             case UPDATE_REMINDER_REQUEST:
                 if (resultCode == RESULT_OK) {
                     Reminder reminder = (Reminder) data.getSerializableExtra(UPDATE_REMINDER_INTENT);
-                    updateItem(reminder);
+                    updateReminder(reminder);
                 }
                 break;
         }
@@ -94,28 +99,50 @@ public class MainActivity extends AppCompatActivity {
         return new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
     }
 
-    public void addItem(Reminder reminder) {
+    protected void setAlarm(Reminder reminder) {
+        if (reminder.getRepeat()) {
+            mAlarmReceiver.setRepeatAlarm(
+                    this,
+                    reminder.asCalendar(),
+                    reminder.getRepeatTimeInMillis(),
+                    reminder.getId(),
+                    reminder.getTitle()
+            );
+        } else {
+            mAlarmReceiver.setAlarm(
+                    this,
+                    reminder.asCalendar(),
+                    reminder.getId(),
+                    reminder.getTitle()
+            );
+        }
+    }
+
+    public void addReminder(Reminder reminder) {
         mReminderMapper.insertReminder(reminder);
         mReminders.add(reminder);
         int position = mReminders.indexOf(reminder);
-        mAdapter.notifyItemRemoved(position);
-        mAdapter.notifyItemRangeChanged(position, mAdapter.getItemCount());
+        mAdapter.notifyItemInserted(position);
+        mAdapter.notifyDataSetChanged();
+        setAlarm(reminder);
     }
 
-    public void updateItem(Reminder reminder) {
+    public void updateReminder(Reminder reminder) {
         mReminderMapper.updateReminder(reminder);
         int position = getIntent().getIntExtra(UPDATE_REMINDER_ID_INTENT, -1);
         mReminders.set(position, reminder);
         mAdapter.notifyItemChanged(position);
         mAdapter.notifyDataSetChanged();
+        setAlarm(reminder);
     }
 
-    public void deleteItem(Reminder reminder) {
+    public void deleteReminder(Reminder reminder) {
         mReminderMapper.deleteReminder(reminder);
         int position = mReminders.indexOf(reminder);
         mReminders.remove(position);
-        mAdapter.notifyItemInserted(position);
-        mAdapter.notifyDataSetChanged();
+        mAdapter.notifyItemRemoved(position);
+        mAdapter.notifyItemRangeChanged(position, mReminders.size());
+        mAlarmReceiver.cancelAlarm(this, reminder.getId());
     }
 
     @Override
@@ -128,7 +155,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_settings:
-                
+
                 return true;
         }
         return super.onOptionsItemSelected(item);

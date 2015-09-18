@@ -22,12 +22,4 @@
     <string name="select_type">Select Type</string>
     <string name="enter_number">Enter Number</string>
     <string name="cancel">Cancel</string>
-
-    <string-array name="repeat_type">
-        <item>Minute</item>
-        <item>Hour</item>
-        <item>Day</item>
-        <item>Week</item>
-        <item>Month</item>
-    </string-array>
 </resources>

@@ -4,10 +4,16 @@ import java.util.Calendar;
 
 public class DateAndTimeManager {
 
-    private Calendar mCalendar;
+    private static DateAndTimeManager instance;
+    private Calendar mCalendar = Calendar.getInstance();
 
-    public DateAndTimeManager() {
-        mCalendar = Calendar.getInstance();
+    private DateAndTimeManager() {}
+
+    public static DateAndTimeManager getInstance() {
+        if (instance == null) {
+            instance = new DateAndTimeManager();
+        }
+        return instance;
     }
 
     public int getCurrentYear() {

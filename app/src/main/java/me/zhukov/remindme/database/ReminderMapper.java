@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import me.zhukov.remindme.model.Reminder;
+import me.zhukov.remindme.model.RepeatType;
 
 import static me.zhukov.remindme.database.ReminderDbHelper.COLUMN_DATE;
 import static me.zhukov.remindme.database.ReminderDbHelper.COLUMN_ID;
@@ -37,54 +38,14 @@ public class ReminderMapper {
         contentValues.put(COLUMN_TIME, reminder.getTime());
         contentValues.put(COLUMN_REPEAT, reminder.getRepeat() ? 1 : 0);
         contentValues.put(COLUMN_REPEAT_NUM, reminder.getRepeatNumber());
-        contentValues.put(COLUMN_REPEAT_TYPE, reminder.getRepeatType());
+        contentValues.put(COLUMN_REPEAT_TYPE, reminder.getRepeatType().toString());
         contentValues.put(COLUMN_SILENT, reminder.getSilent() ? 1 : 0);
 
         long rowId = mDatabase.insert(TABLE_NAME, null, contentValues);
-        reminder.setId(rowId);
+        reminder.setId((int)rowId);
         mDatabase.close();
         mDbHelper.close();
         return rowId;
-    }
-
-    public Reminder getReminder(int id) {
-        mDatabase = mDbHelper.getReadableDatabase();
-        Reminder reminder;
-        Cursor cursor = mDatabase.query(
-                TABLE_NAME,
-                new String[]{
-                        COLUMN_ID,
-                        COLUMN_TITLE,
-                        COLUMN_DATE,
-                        COLUMN_TIME,
-                        COLUMN_REPEAT,
-                        COLUMN_REPEAT_NUM,
-                        COLUMN_REPEAT_TYPE,
-                        COLUMN_SILENT
-                },
-                COLUMN_ID + " = ?",
-                new String[]{String.valueOf(id)},
-                null,
-                null,
-                null
-        );
-        if (cursor != null && cursor.moveToFirst()) {
-            reminder = new Reminder();
-            reminder.setId(cursor.getInt(0));
-            reminder.setTitle(cursor.getString(1));
-            reminder.setDate(cursor.getString(2));
-            reminder.setTime(cursor.getString(3));
-            reminder.setRepeat(cursor.getInt(4) == 1);
-            reminder.setRepeatNumber(cursor.getString(5));
-            reminder.setRepeatType(cursor.getString(6));
-            reminder.setSilent(cursor.getInt(7) == 1);
-        } else {
-            reminder = Reminder.getDefaultReminder();
-        }
-        cursor.close();
-        mDatabase.close();
-        mDbHelper.close();
-        return reminder;
     }
 
     public boolean updateReminder(Reminder reminder) {
@@ -95,7 +56,7 @@ public class ReminderMapper {
         contentValues.put(COLUMN_TIME, reminder.getTime());
         contentValues.put(COLUMN_REPEAT, reminder.getRepeat() ? 1 : 0);
         contentValues.put(COLUMN_REPEAT_NUM, reminder.getRepeatNumber());
-        contentValues.put(COLUMN_REPEAT_TYPE, reminder.getRepeatType());
+        contentValues.put(COLUMN_REPEAT_TYPE, reminder.getRepeatType().toString());
         contentValues.put(COLUMN_SILENT, reminder.getSilent() ? 1 : 0);
 
         int rows = mDatabase.update(
@@ -129,8 +90,10 @@ public class ReminderMapper {
                 reminder.setDate(cursor.getString(dateColIndex));
                 reminder.setTime(cursor.getString(timeColIndex));
                 reminder.setRepeat(cursor.getInt(repeatColIndex) == 1);
-                reminder.setRepeatNumber(cursor.getString(repeatNumColIndex));
-                reminder.setRepeatType(cursor.getString(repeatTypeColIndex));
+                reminder.setRepeatNumber(cursor.getInt(repeatNumColIndex));
+                reminder.setRepeatType(
+                        RepeatType.valueOf(cursor.getString(repeatTypeColIndex).toUpperCase())
+                );
                 reminder.setSilent(cursor.getInt(silentColIndex) == 1);
 
                 reminders.add(reminder);
@@ -151,16 +114,5 @@ public class ReminderMapper {
         mDatabase.close();
         mDbHelper.close();
         return rows > 0;
-    }
-
-    public int getRemindersCount(){
-        String countQuery = "SELECT * FROM " + TABLE_NAME;
-        mDatabase = mDbHelper.getReadableDatabase();
-        Cursor cursor = mDatabase.rawQuery(countQuery, null);
-        int count = cursor.getCount();
-        cursor.close();
-        mDatabase.close();
-        mDbHelper.close();
-        return count;
     }
 }

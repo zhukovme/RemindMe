@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import me.zhukov.remindme.R;
-import me.zhukov.remindme.activity.AddOrEditReminderActivity;
+import me.zhukov.remindme.activity.ReminderActivity;
 import me.zhukov.remindme.activity.MainActivity;
 import me.zhukov.remindme.model.Reminder;
 
@@ -94,7 +94,7 @@ public class ReminderListAdapter extends RecyclerView.Adapter<ReminderListAdapte
                             deletedReminders.add(mReminders.get(position));
                         }
                         for (Reminder reminder : deletedReminders) {
-                            mMainActivity.deleteItem(reminder);
+                            mMainActivity.deleteReminder(reminder);
                         }
                         if (mReminders.isEmpty()) {
                             mTvNoReminder.setVisibility(View.VISIBLE);
@@ -128,14 +128,13 @@ public class ReminderListAdapter extends RecyclerView.Adapter<ReminderListAdapte
         public void onClick(View v) {
             if (!mMultiSelector.tapSelection(this)) {
                 Reminder reminder = mReminders.get(getAdapterPosition());
-                Intent intent = new Intent(
-                        mMainActivity.getBaseContext(),
-                        AddOrEditReminderActivity.class
-                );
+                Intent intent = new Intent(mMainActivity.getBaseContext(), ReminderActivity.class);
                 intent.putExtra(MainActivity.UPDATE_REMINDER_INTENT, reminder);
-                mMainActivity.setIntent(new Intent().putExtra(
-                        MainActivity.UPDATE_REMINDER_ID_INTENT,
-                        getAdapterPosition())
+                mMainActivity.setIntent(
+                        new Intent().putExtra(
+                                MainActivity.UPDATE_REMINDER_ID_INTENT,
+                                getAdapterPosition()
+                        )
                 );
                 mMainActivity.startActivityForResult(intent, MainActivity.UPDATE_REMINDER_REQUEST);
             }

@@ -22,11 +22,12 @@ import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
 import com.wdullaer.materialdatetimepicker.time.RadialPickerLayout;
 import com.wdullaer.materialdatetimepicker.time.TimePickerDialog;
 
-import me.zhukov.remindme.util.DateAndTimeManager;
 import me.zhukov.remindme.R;
 import me.zhukov.remindme.model.Reminder;
+import me.zhukov.remindme.model.RepeatType;
+import me.zhukov.remindme.util.DateAndTimeManager;
 
-public class AddOrEditReminderActivity extends AppCompatActivity
+public class ReminderActivity extends AppCompatActivity
         implements DatePickerDialog.OnDateSetListener, TimePickerDialog.OnTimeSetListener {
 
     private Reminder mReminder;
@@ -42,7 +43,7 @@ public class AddOrEditReminderActivity extends AppCompatActivity
     private TextView mTvReminderRepeatType;
 
     private DateAndTimeManager mDtManager;
-    private boolean reminderForInsert;
+    private boolean reminderForAdd;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,10 +65,10 @@ public class AddOrEditReminderActivity extends AppCompatActivity
         mReminder = (Reminder) getIntent().getSerializableExtra(MainActivity.UPDATE_REMINDER_INTENT);
         if (mReminder == null) {
             mReminder = Reminder.getDefaultReminder();
-            reminderForInsert = true;
+            reminderForAdd = true;
         }
 
-        mDtManager = new DateAndTimeManager();
+        mDtManager = DateAndTimeManager.getInstance();
 
         setViewValues();
 
@@ -115,8 +116,8 @@ public class AddOrEditReminderActivity extends AppCompatActivity
         mTvReminderTime.setText(mReminder.getTime());
         mTvReminderRepeat.setText(mReminder.repeatToString());
         mSwitchReminderRepeat.setChecked(mReminder.getRepeat());
-        mTvReminderRepeatNumber.setText(mReminder.getRepeatNumber());
-        mTvReminderRepeatType.setText(mReminder.getRepeatType());
+        mTvReminderRepeatNumber.setText(String.valueOf(mReminder.getRepeatNumber()));
+        mTvReminderRepeatType.setText(mReminder.getRepeatType().toString());
         changeFabIcon();
     }
 
@@ -128,9 +129,9 @@ public class AddOrEditReminderActivity extends AppCompatActivity
         }
     }
 
-    private void insertReminder() {
+    private void addReminder() {
         Intent intent = new Intent();
-        intent.putExtra(MainActivity.INSERT_REMINDER_INTENT, mReminder);
+        intent.putExtra(MainActivity.ADD_REMINDER_INTENT, mReminder);
         setResult(RESULT_OK, intent);
     }
 
@@ -186,8 +187,10 @@ public class AddOrEditReminderActivity extends AppCompatActivity
                         if (number.isEmpty() || Integer.valueOf(number) == 0) {
                             dialog.dismiss();
                         } else {
-                            mReminder.setRepeatNumber(Integer.valueOf(number).toString());
-                            mTvReminderRepeatNumber.setText(mReminder.getRepeatNumber());
+                            mReminder.setRepeatNumber(Integer.valueOf(number));
+                            mTvReminderRepeatNumber.setText(
+                                    String.valueOf(mReminder.getRepeatNumber())
+                            );
                             mTvReminderRepeat.setText(mReminder.repeatToString());
                         }
                     }
@@ -198,20 +201,18 @@ public class AddOrEditReminderActivity extends AppCompatActivity
     }
 
     public void onClickSetRepeatType(View view) {
-        final String[] items = getResources().getStringArray(R.array.repeat_type);
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(getResources().getString(R.string.select_type));
-        builder.setItems(
-                items,
+        AlertDialog.Builder alert = new AlertDialog.Builder(this);
+        alert.setTitle(getResources().getString(R.string.select_type));
+        alert.setItems(
+                RepeatType.names(),
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int item) {
-                        mReminder.setRepeatType(items[item]);
-                        mTvReminderRepeatType.setText(mReminder.getRepeatType());
+                        mReminder.setRepeatType(RepeatType.values()[item]);
+                        mTvReminderRepeatType.setText(mReminder.getRepeatType().toString());
                         mTvReminderRepeat.setText(mReminder.repeatToString());
                     }
                 }
         );
-        AlertDialog alert = builder.create();
         alert.show();
     }
 
@@ -235,8 +236,8 @@ public class AddOrEditReminderActivity extends AppCompatActivity
                     mEtReminderTitle.setError(getResources().getString(R.string.blank_title_error));
                 } else {
                     Toast.makeText(this, getResources().getString(R.string.saved), Toast.LENGTH_SHORT).show();
-                    if (reminderForInsert) {
-                        insertReminder();
+                    if (reminderForAdd) {
+                        addReminder();
                     } else {
                         updateReminder();
                     }
