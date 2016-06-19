@@ -48,7 +48,7 @@ public class ReminderActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_add_or_edit_reminder);
+        setContentView(R.layout.activity_reminder);
 
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
         mEtReminderTitle = (EditText) findViewById(R.id.et_reminder_title);
